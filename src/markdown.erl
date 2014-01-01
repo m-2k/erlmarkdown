@@ -244,7 +244,17 @@ make_heading(H, I, P, R) ->
     make_heading(H, I, make_str(snip(P), R)).
 
 make_heading_id(P) ->
-    "abc".
+    string:to_lower(sanitize_heading_id(remove_tags(P))).
+
+remove_tags(P) ->
+    Pattern = "<[^<]*>",
+    re:replace(P, Pattern, "", [global, {return, list}]).
+
+sanitize_heading_id(Id) ->
+    sanitize_heading_id(Id, "[^A-Za-z0-9-]").
+sanitize_heading_id(Id, Pattern) ->
+    Id2 = re:replace(Id, Pattern, "-", [global, {return, list}]),
+    re:replace(Id2, "-{2,}", "-", [global, {return, list}]).
 
 grab_for_blockhtml([], Type, Acc) ->
     {lists:reverse(["</" ++ Type ++ ">" | Acc]), []};
