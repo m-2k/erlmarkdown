@@ -239,9 +239,12 @@ p1([{inlineref, _P} | T], R, I, Acc) ->
     p1(T, R, I, Acc).
 
 make_heading(H, I, P) ->
-    pad(I) ++ "<" ++ H ++ ">" ++ P ++ "</" ++ H ++ ">\n\n".
+    pad(I) ++ "<" ++ H ++ " id=\"" ++ make_heading_id(P) ++ "\">" ++ P ++ "</" ++ H ++ ">\n\n".
 make_heading(H, I, P, R) ->
     make_heading(H, I, make_str(snip(P), R)).
+
+make_heading_id(P) ->
+    "abc".
 
 grab_for_blockhtml([], Type, Acc) ->
     {lists:reverse(["</" ++ Type ++ ">" | Acc]), []};
