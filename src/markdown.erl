@@ -130,20 +130,15 @@ p1([{normal, P1}, {normal, P2} | T], R, I, Acc) ->
 
 %% setext h1 is a look behind and it overrides blockquote and code...
 p1([{normal, P}, {setext_h1, _} | T], R, I, Acc) ->
-    p1(T, R, I,  [pad(I) ++ "<h1>" ++ make_str(snip(P), R)
-                        ++ "</h1>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h1", I, P, R) | Acc]);
 p1([{blockquote, P}, {setext_h1, _} | T], R, I, Acc) ->
-    p1(T, R, I,  [pad(I) ++ "<h1>" ++ make_str(snip(P), R)
-                        ++ "</h1>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h1", I, P, R) | Acc]);
 p1([{{codeblock, P}, _}, {setext_h1, _} | T], R, I, Acc) ->
-    p1(T, R, I,  [pad(I) ++ "<h1>" ++ make_str(snip(P), R)
-                        ++ "</h1>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h1", I, P, R) | Acc]);
 p1([{blockquote, P}, {h2_or_hr, _} | T], R, I, Acc) ->
-    p1(T, R, I,  [pad(I) ++ "<h2>" ++ make_str(snip(P), R)
-                        ++ "</h2>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h2", I, P, R) | Acc]);
 p1([{{codeblock, P}, _}, {h2_or_hr, _} | T], R, I, Acc) ->
-    p1(T, R, I,  [pad(I) ++ "<h2>" ++ make_str(snip(P), R)
-                        ++ "</h2>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h2", I, P, R) | Acc]);
 
 %% but a setext with no lookbehind is just rendered as a normal line,
 %% so change its type and rethrow it
@@ -153,7 +148,7 @@ p1([{setext_h1, P} | T], R, I, Acc) ->
 %% setext h2 might be a look behind
 p1([{normal, P}, {h2_or_hr, _} | T], R, I, Acc) ->
     P2 = string:strip(make_str(snip(P), R), both, ?SPACE),
-    p1(T, R, I, [pad(I) ++ "<h2>" ++ P2 ++ "</h2>\n\n" | Acc]);
+    p1(T, R, I, [make_heading("h2", I, P2) | Acc]);
 
 %% blockquotes swallow each other
 %% replace the first blockquote mark with a space...
@@ -177,22 +172,22 @@ p1([{normal, P} | T], R, I, Acc) ->
 %% atx headings
 p1([{{h1, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h1>" ++ NewP ++ "</h1>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h1", I, NewP) | Acc]);
 p1([{{h2, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h2>" ++ NewP ++ "</h2>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h2", I, NewP) | Acc]);
 p1([{{h3, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h3>" ++ NewP ++ "</h3>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h3", I, NewP) | Acc]);
 p1([{{h4, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h4>" ++ NewP ++ "</h4>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h4", I, NewP) | Acc]);
 p1([{{h5, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h5>" ++ NewP ++ "</h5>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h5", I, NewP) | Acc]);
 p1([{{h6, P}, _} | T], R, I, Acc) ->
     NewP = string:strip(make_str(snip(P), R), right),
-    p1(T, R, I,  [pad(I) ++ "<h6>" ++ NewP ++ "</h6>\n\n" | Acc]);
+    p1(T, R, I,  [make_heading("h6", I, NewP) | Acc]);
 
 %% unordered lists swallow normal and codeblock lines
 p1([{{ul, P1}, S1}, {{normal, P2}, S2} | T], R, I , Acc) ->
@@ -242,6 +237,11 @@ p1([{h2_or_hr, _} | T], R, I, Acc) ->
 %% Now start pulling out inline refs etc, etc
 p1([{inlineref, _P} | T], R, I, Acc) ->
     p1(T, R, I, Acc).
+
+make_heading(H, I, P) ->
+    pad(I) ++ "<" ++ H ++ ">" ++ P ++ "</" ++ H ++ ">\n\n".
+make_heading(H, I, P, R) ->
+    make_heading(H, I, make_str(snip(P), R)).
 
 grab_for_blockhtml([], Type, Acc) ->
     {lists:reverse(["</" ++ Type ++ ">" | Acc]), []};
